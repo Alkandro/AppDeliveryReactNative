@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,17 +10,34 @@ import {
   Platform,
 } from "react-native";
 import Toast from "react-native-root-toast";
+import styles from "./Styles";
 import RoundedButton from "../../components/RoundedButton";
 import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackNavigationProp, StackScreenProps } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../../App";
 import useViewModel from "./ViewModel";
 import { CustomTextInput } from "../../components/CustomTextInput";
 
-export const HomeScreen = () => {
-  const { email, password, onChange } = useViewModel();
+interface Props extends StackScreenProps<RootStackParamList, "HomeScreen"> {}
 
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+export const HomeScreen = ({ navigation, route }: Props) => {
+  const { email, password, errorMessage, onChange, login, user } =
+    useViewModel();
+
+  useEffect(() => {
+    if (errorMessage !== "") {
+      Toast.show(errorMessage, {
+        position: Toast.positions.BOTTOM,
+        duration: Toast.durations.SHORT,
+      });
+    }
+  }, [errorMessage]);
+
+  useEffect(() => {
+    if (user?.id !== null && user?.id !== undefined) {
+      navigation.replace("ProfileInfoScreen");
+    }
+  }, [user]);
 
   return (
     <KeyboardAvoidingView
@@ -44,44 +61,34 @@ export const HomeScreen = () => {
         <View style={styles.form}>
           <Text style={styles.formText}>INGRESAR</Text>
 
-          <CustomTextInput 
-          image={require("../../../../assets/email.png")}
-          placeholder="Correo electronico"
-          keyboardType="email-address"
-          property="email"
-          onChangeText={onChange}
-          value={email}
+          <CustomTextInput
+            image={require("../../../../assets/email.png")}
+            placeholder="Correo electronico"
+            keyboardType="email-address"
+            property="email"
+            onChangeText={onChange}
+            value={email}
           />
 
-          
-          <View style={styles.formInput}>
-            <Image
-              source={require("../../../../assets/password.png")}
-              style={styles.formIcon}
-            />
-            <TextInput
-              style={styles.formTextInput}
-              placeholder="Password"
-              keyboardType="default"
-              secureTextEntry={true}
-              value={password}
-              onChangeText={(text) => onChange('password', text)}
-            />
-          </View>
+          <CustomTextInput
+            image={require("../../../../assets/password.png")}
+            placeholder="Password"
+            keyboardType="default"
+            property="password"
+            onChangeText={onChange}
+            value={password}
+            secureTextEntry={true}
+          />
 
           <View style={{ marginTop: 30 }}>
             <RoundedButton
               text="ENTRAR"
-              onPress={
-                () => {
-                  console.log("Email: " + email);
-                  console.log("Password: " + password);
-                }
-                //   Toast.show("HOLA!!", {
-                //     position: Toast.positions.CENTER,
-                //     duration: Toast.durations.SHORT,
-                //   })
-              }
+              onPress={() => login()}
+
+              //   Toast.show("HOLA!!", {
+              //     position: Toast.positions.CENTER,
+              //     duration: Toast.durations.SHORT,
+              //   })
             />
           </View>
           <View style={styles.formRegister}>
@@ -97,77 +104,3 @@ export const HomeScreen = () => {
     </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "black",
-  },
-  containerKey: {
-    flex: 1,
-  },
-  ImageBackground: {
-    width: "100%",
-    height: "100%",
-    opacity: 0.7,
-    bottom: "30%",
-  },
-  form: {
-    width: "100%",
-    height: "40%",
-    backgroundColor: "white",
-    position: "absolute",
-    bottom: 0,
-    borderTopRightRadius: 40,
-    borderTopLeftRadius: 40,
-    padding: 30,
-  },
-  formText: {
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  formInput: {
-    flexDirection: "row",
-    marginTop: 30,
-  },
-  formIcon: {
-    width: 25,
-    height: 25,
-    marginTop: 5,
-  },
-  formTextInput: {
-    flex: 1,
-    borderBottomWidth: 2,
-    borderBottomColor: "#AAAAAA",
-    marginLeft: 15,
-  },
-  formRegister: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 30,
-  },
-  formRegisterText: {
-    fontStyle: "italic",
-    color: "orange",
-    borderBottomWidth: 1,
-    borderBlockColor: "orange",
-    fontWeight: "bold",
-    marginLeft: 10,
-  },
-  logoContainer: {
-    position: "absolute",
-    alignSelf: "center",
-    top: "15%",
-  },
-  logoImage: {
-    height: 100,
-    width: 100,
-  },
-  logoText: {
-    color: "white",
-    textAlign: "center",
-    fontSize: 20,
-    marginTop: 10,
-    fontWeight: "bold",
-  },
-});
